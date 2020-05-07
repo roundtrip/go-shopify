@@ -31,6 +31,7 @@ type InventoryItem struct {
 	UpdatedAt         *time.Time       `json:"updated_at,omitempty"`
 	Cost              *decimal.Decimal `json:"cost,omitempty"`
 	Tracked           *bool            `json:"tracked,omitempty"`
+	RequiresShipping  *bool            `json:"requires_shipping,omitempty"`
 	AdminGraphqlAPIID string           `json:"admin_graphql_api_id,omitempty"`
 }
 

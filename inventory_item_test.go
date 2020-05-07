@@ -33,6 +33,16 @@ func inventoryItemTests(t *testing.T, item *InventoryItem) {
 	if costFloat != expectedCost {
 		t.Errorf("InventoryItem.Cost (float) is %+v, expected %+v", costFloat, expectedCost)
 	}
+
+	if item.RequiresShipping == nil {
+		t.Errorf("InventoryItem.RequiresShipping is nil")
+		return
+	}
+
+	if !*item.RequiresShipping {
+		t.Errorf("InventoryItem.RequiresShipping is %t, expected %t", *item.RequiresShipping, true)
+		return
+	}
 }
 
 func inventoryItemsTests(t *testing.T, items []InventoryItem) {
