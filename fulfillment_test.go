@@ -15,6 +15,10 @@ func FulfillmentTests(t *testing.T, fulfillment Fulfillment) {
 	if fulfillment.ID != expectedInt {
 		t.Errorf("Fulfillment.ID returned %+v, expected %+v", fulfillment.ID, expectedInt)
 	}
+	expectedName := "#1001.1"
+	if fulfillment.Name != expectedName {
+		t.Errorf("Fulfillment.Name returned %+v, expected %+v", fulfillment.Name, expectedName)
+	}
 }
 
 func TestFulfillmentList(t *testing.T) {
@@ -22,7 +26,7 @@ func TestFulfillmentList(t *testing.T) {
 	defer teardown()
 
 	httpmock.RegisterResponder("GET", fmt.Sprintf("https://fooshop.myshopify.com/%s/orders/123/fulfillments.json", client.pathPrefix),
-		httpmock.NewStringResponder(200, `{"fulfillments": [{"id":1},{"id":2}]}`))
+		httpmock.NewStringResponder(200, `{"fulfillments": [{"id":1,"name":"#1001.1"},{"id":2,"name":"#1001.2"}]}`))
 
 	fulfillmentService := &FulfillmentServiceOp{client: client, resource: ordersResourceName, resourceID: 123}
 
@@ -31,7 +35,7 @@ func TestFulfillmentList(t *testing.T) {
 		t.Errorf("Fulfillment.List returned error: %v", err)
 	}
 
-	expected := []Fulfillment{{ID: 1}, {ID: 2}}
+	expected := []Fulfillment{{ID: 1, Name: "#1001.1"}, {ID: 2, Name: "#1001.2"}}
 	if !reflect.DeepEqual(fulfillments, expected) {
 		t.Errorf("Fulfillment.List returned %+v, expected %+v", fulfillments, expected)
 	}
