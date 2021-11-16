@@ -394,6 +394,10 @@ func (c *Client) logResponse(res *http.Response) {
 		return
 	}
 	c.log.Debugf("RECV %d: %s", res.StatusCode, res.Status)
+	requestID := res.Header.Get("X-Request-ID")
+	if len(requestID) > 0 {
+		c.log.Debugf("X-Request-ID: %s", requestID)
+	}
 	c.logBody(&res.Body, "RESP: %s")
 }
 
