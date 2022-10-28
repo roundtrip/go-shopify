@@ -291,6 +291,55 @@ func TestOrderGet(t *testing.T) {
 	orderTests(t, *order)
 }
 
+func TestOrderGetWithDiscountApplications(t *testing.T) {
+	setup()
+	defer teardown()
+
+	httpmock.RegisterResponder("GET", fmt.Sprintf("https://fooshop.myshopify.com/%s/orders/123456.json", client.pathPrefix),
+		httpmock.NewBytesResponder(200, loadFixture("order_with_discount_applications.json")))
+
+	order, err := client.Order.Get(123456, nil)
+	if err != nil {
+		t.Errorf("Order.Get returned error: %v", err)
+	}
+
+	if expected, actual := 1, len(order.DiscountApplications); expected != actual {
+		t.Fatalf("DiscountApplications should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "Custom Discount", order.DiscountApplications[0].Title; expected != actual {
+		t.Errorf("DiscountApplications.Title should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "line_item", order.DiscountApplications[0].TargetType; expected != actual {
+		t.Errorf("DiscountApplications.TargetType should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "discount_code", order.DiscountApplications[0].Type; expected != actual {
+		t.Errorf("DiscountApplications.Type should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := decimal.New(314, -2), order.DiscountApplications[0].Value; actual == nil || !expected.Equal(*actual) {
+		t.Errorf("DiscountApplications.Value should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "fixed_amount", order.DiscountApplications[0].ValueType; expected != actual {
+		t.Errorf("DiscountApplications.ValueType should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "across", order.DiscountApplications[0].AllocationMethod; expected != actual {
+		t.Errorf("DiscountApplications.AllocationMethod should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "all", order.DiscountApplications[0].TargetSelection; expected != actual {
+		t.Errorf("DiscountApplications.TargetSelection should be (%v), was (%v)", expected, actual)
+	}
+
+	if expected, actual := "TEST", order.DiscountApplications[0].Code; expected != actual {
+		t.Errorf("DiscountApplications.Code should be (%v), was (%v)", expected, actual)
+	}
+}
+
 func TestOrderGetWithTransactions(t *testing.T) {
 	setup()
 	defer teardown()
