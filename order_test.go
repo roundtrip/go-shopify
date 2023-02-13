@@ -764,19 +764,6 @@ func TestLineItemUnmarshalJSON(t *testing.T) {
 	testLineItem(t, expected, actual)
 }
 
-// TestLineItemUnmarshalJSONInvalid0 tests unmarsalling a LineItem from invalid json
-func TestLineItemUnmarshalJSONInvalid0(t *testing.T) {
-	setup()
-	defer teardown()
-
-	actual := LineItem{}
-
-	err := actual.UnmarshalJSON(loadFixture("orderlineitems/properties_invalid0.json"))
-	if err == nil || !strings.Contains(err.Error(), "unexpected end of JSON input") {
-		t.Errorf("LineItem.UnmarshalJSON expected unexpected end of JSON input error got %v", err)
-	}
-}
-
 // TestLineItemUnmarshalJSONInvalid1 tests unmarsalling a LineItem with properties that are a struct with invalid
 // values
 func TestLineItemUnmarshalJSONInvalid1(t *testing.T) {
@@ -835,6 +822,23 @@ func TestLineItemUnmarshalJSONPropertiesObject(t *testing.T) {
 	}
 
 	expected := propertiesStructLientItem()
+
+	testLineItem(t, expected, actual)
+}
+
+// TestLineItemUnmarshalJSONPropertiesMissing tests unmarshalling a LineItem with no properties set at all.
+func TestLineItemUnmarshalJSONPropertiesMissing(t *testing.T) {
+	setup()
+	defer teardown()
+
+	actual := LineItem{}
+
+	err := actual.UnmarshalJSON(loadFixture("orderlineitems/properties_missing.json"))
+	if err != nil {
+		t.Errorf("LineItem.UnmarshalJSON returned error: %v", err)
+	}
+
+	expected := propertiesMissingStructLineItem()
 
 	testLineItem(t, expected, actual)
 }
@@ -1027,6 +1031,12 @@ func propertiesStructLientItem() LineItem {
 				Value: float64(3),
 			},
 		},
+	}
+}
+
+func propertiesMissingStructLineItem() LineItem {
+	return LineItem{
+		Properties: nil,
 	}
 }
 
