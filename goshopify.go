@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -412,13 +413,55 @@ func (c *Client) logBody(body *io.ReadCloser, format string) {
 	*body = ioutil.NopCloser(bytes.NewBuffer(b))
 }
 
-func wrapSpecificError(r *http.Response, err ResponseError) error {
+func wrapSpecificError(r *http.Response, body []byte, err ResponseError) error {
 	// see https://www.shopify.dev/concepts/about-apis/response-codes
 	if err.Status == http.StatusTooManyRequests {
 		f, _ := strconv.ParseFloat(r.Header.Get("Retry-After"), 64)
 		return RateLimitError{
 			ResponseError: err,
 			RetryAfter:    int(f),
+		}
+	}
+
+	// Check for alternative TOO_MANY_REQUESTS response.
+	//
+	// We don't know exactly what the response is or how it gets unmarshalled (we're
+	// assuming something like {"error": "..."}), but we do know that the string generated
+	// by the Error() function can be checked against.
+	//
+	// Strangely enough the HTTP status code is not 429.
+	//
+	// See https://www.pivotaltracker.com/story/show/185184717 for background.
+	if strings.Index(err.Error(), "TOO_MANY_REQUESTS") > 0 {
+		// TODO: remove this after we've figured out what this error is.
+		s := strings.Builder{}
+		s.WriteString("TOO_MANY_REQUESTS response:\n")
+		s.WriteString(fmt.Sprintf("HTTP %d\n", r.StatusCode))
+		for k, vs := range r.Header {
+			for _, v := range vs {
+				s.WriteString(k)
+				s.WriteString(": ")
+				s.WriteString(v)
+				s.WriteString("\n")
+			}
+		}
+		s.Write(body)
+		s.WriteString("\n")
+		log.Print(s.String())
+
+		// We don't know if there's a Retry-After header, so use a sensible
+		// minimum value if it doesn't exist.
+		retryAfter := 2
+		if v := r.Header.Get("Retry-After"); v != "" {
+			f, err := strconv.ParseFloat(v, 64)
+			if err == nil {
+				retryAfter = int(f)
+			}
+		}
+
+		return RateLimitError{
+			ResponseError: err,
+			RetryAfter:    retryAfter,
 		}
 	}
 
@@ -472,7 +515,7 @@ func CheckResponseError(r *http.Response) error {
 
 	// If the errors field is not filled out, we can return here.
 	if shopifyError.Errors == nil {
-		return wrapSpecificError(r, responseError)
+		return wrapSpecificError(r, bodyBytes, responseError)
 	}
 
 	// Shopify errors usually have the form:
@@ -519,7 +562,7 @@ func CheckResponseError(r *http.Response) error {
 		}
 	}
 
-	return wrapSpecificError(r, responseError)
+	return wrapSpecificError(r, bodyBytes, responseError)
 }
 
 // General list options that can be used for most collections of entities.
