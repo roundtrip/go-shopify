@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -423,34 +422,16 @@ func wrapSpecificError(r *http.Response, body []byte, err ResponseError) error {
 		}
 	}
 
-	// Check for alternative TOO_MANY_REQUESTS response.
+	// Shopify can occasionally return HTTP 430 when too many requests
+	// originate from the same IP. This is different than HTTP 429 but can be
+	// treated similarly.
 	//
-	// We don't know exactly what the response is or how it gets unmarshalled (we're
-	// assuming something like {"error": "..."}), but we do know that the string generated
-	// by the Error() function can be checked against.
-	//
-	// Strangely enough the HTTP status code is not 429.
-	//
-	// See https://www.pivotaltracker.com/story/show/185184717 for background.
-	if strings.Index(err.Error(), "TOO_MANY_REQUESTS") > 0 {
-		// TODO: remove this after we've figured out what this error is.
-		s := strings.Builder{}
-		s.WriteString("TOO_MANY_REQUESTS response:\n")
-		s.WriteString(fmt.Sprintf("HTTP %d\n", r.StatusCode))
-		for k, vs := range r.Header {
-			for _, v := range vs {
-				s.WriteString(k)
-				s.WriteString(": ")
-				s.WriteString(v)
-				s.WriteString("\n")
-			}
-		}
-		s.Write(body)
-		s.WriteString("\n")
-		log.Print(s.String())
-
-		// We don't know if there's a Retry-After header, so use a sensible
-		// minimum value if it doesn't exist.
+	// See the following for background:
+	// https://www.pivotaltracker.com/story/show/185184717
+	// https://www.pivotaltracker.com/story/show/185215224
+	if err.Status == 430 {
+		// There typically isn't a Retry-After header so have a sensible default
+		// but support it so that tests can opt out by setting it to zero.
 		retryAfter := 2
 		if v := r.Header.Get("Retry-After"); v != "" {
 			f, err := strconv.ParseFloat(v, 64)
