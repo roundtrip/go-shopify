@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -431,8 +432,9 @@ func wrapSpecificError(r *http.Response, body []byte, err ResponseError) error {
 	// https://www.pivotaltracker.com/story/show/185215224
 	if err.Status == 430 {
 		// There typically isn't a Retry-After header so have a sensible default
-		// but support it so that tests can opt out by setting it to zero.
-		retryAfter := 2
+		// with some jitter but support it so that tests can opt out by setting
+		// it to zero.
+		retryAfter := 1 + rand.Intn(10)
 		if v := r.Header.Get("Retry-After"); v != "" {
 			f, err := strconv.ParseFloat(v, 64)
 			if err == nil {
