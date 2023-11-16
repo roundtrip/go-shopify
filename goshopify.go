@@ -618,6 +618,11 @@ func (c *Client) createAndDoGetHeaders(method, relPath string, data, options, re
 	return c.doGetHeaders(req, resource)
 }
 
+// CreateAndDoGetHeaders creates an executes a request while returning the response headers.
+func (c *Client) CreateAndDoGetHeaders(method, relPath string, data, options, resource interface{}) (http.Header, error) {
+	return c.createAndDoGetHeaders(method, relPath, data, options, resource)
+}
+
 // Get performs a GET request for the given path and saves the result in the
 // given resource.
 func (c *Client) Get(path string, resource, options interface{}) error {
