@@ -90,7 +90,7 @@ type Order struct {
 	FinancialStatus          string                `json:"financial_status,omitempty"`
 	Fulfillments             []Fulfillment         `json:"fulfillments,omitempty"`
 	FulfillmentStatus        string                `json:"fulfillment_status,omitempty"`
-	DisplayFulfillmentStatus string                `json:"display_fulfillment_status"`
+	DisplayFulfillmentStatus string                `json:"display_fulfillment_status,omitempty"`
 	Token                    string                `json:"token,omitempty"`
 	CartToken                string                `json:"cart_token,omitempty"`
 	Number                   int                   `json:"number,omitempty"`
