@@ -8,6 +8,16 @@
     "name": "Soda",
     "pre_tax_price": "9.00",
     "price": "12.34",
+    "price_set": {
+      "shop_money": {
+          "amount": "12.34",
+          "currency_code": "USD"
+      },
+      "presentment_money": {
+          "amount": "23.45",
+          "currency_code": "CAD"
+      }
+    },
     "product_exists": true,
     "product_id": 111475476,
     "properties": [

@@ -979,6 +979,19 @@ func testLineItem(t *testing.T, expected, actual LineItem) {
 			t.Errorf("LineItem.AppliedDiscount should be (%v), was (%v)", expected.AppliedDiscount, actual.AppliedDiscount)
 		}
 	}
+
+	if actual.PriceSet == nil {
+		if actual.PriceSet != expected.PriceSet {
+			t.Errorf("LineItem.PriceSet should be (%v), was (%v)", expected.PriceSet, actual.PriceSet)
+		}
+	} else {
+		if !actual.PriceSet.ShopMoney.Amount.Equal(*expected.PriceSet.ShopMoney.Amount) ||
+			actual.PriceSet.ShopMoney.CurrencyCode != expected.PriceSet.ShopMoney.CurrencyCode ||
+			!actual.PriceSet.PresentmentMoney.Amount.Equal(*expected.PriceSet.PresentmentMoney.Amount) ||
+			actual.PriceSet.PresentmentMoney.CurrencyCode != expected.PriceSet.PresentmentMoney.CurrencyCode {
+			t.Errorf("LineItem.PriceSet should be (%v), was (%v)", expected.PriceSet, actual.PriceSet)
+		}
+	}
 }
 
 func testProperties(t *testing.T, expected, actual []NoteAttribute) {
@@ -1042,6 +1055,7 @@ func propertiesMissingStructLineItem() LineItem {
 
 func validLineItem() LineItem {
 	price := decimal.New(1234, -2)
+	presentmentPrice := decimal.New(2345, -2)
 	totalDiscount := decimal.New(123, -2)
 	preTaxPrice := decimal.New(900, -2)
 	tl1Price := decimal.New(1350, -2)
@@ -1050,11 +1064,21 @@ func validLineItem() LineItem {
 	tl2Rate := decimal.New(5, -2)
 	discountAllocationAmount := decimal.New(55, -1)
 	return LineItem{
-		ID:                         int64(254721536),
-		ProductID:                  int64(111475476),
-		VariantID:                  int64(1234),
-		Quantity:                   1,
-		Price:                      &price,
+		ID:        int64(254721536),
+		ProductID: int64(111475476),
+		VariantID: int64(1234),
+		Quantity:  1,
+		Price:     &price,
+		PriceSet: &AmountSet{
+			ShopMoney: AmountSetEntry{
+				Amount:       &price,
+				CurrencyCode: "USD",
+			},
+			PresentmentMoney: AmountSetEntry{
+				Amount:       &presentmentPrice,
+				CurrencyCode: "CAD",
+			},
+		},
 		TotalDiscount:              &totalDiscount,
 		Title:                      "Soda Title",
 		VariantTitle:               "Test Variant",
