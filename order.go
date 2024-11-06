@@ -298,6 +298,7 @@ type ShippingLines struct {
 	DeliveryCategory              string           `json:"delivery_category,omitempty"`
 	CarrierIdentifier             string           `json:"carrier_identifier,omitempty"`
 	TaxLines                      []TaxLine        `json:"tax_lines,omitempty"`
+	IsArchived                    bool             `json:"is_archived,omitempty"`
 }
 
 type TaxLine struct {

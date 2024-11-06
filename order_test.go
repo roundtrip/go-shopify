@@ -189,6 +189,29 @@ func orderTests(t *testing.T, order Order) {
 	if !ptp.Equals(*lineItem.PreTaxPrice) {
 		t.Errorf("Order.LineItems[0].PreTaxPrice, expected %v, actual %v", "9.00", lineItem.PreTaxPrice)
 	}
+
+	// Check shipping lines
+	if len(order.ShippingLines) != 2 {
+		t.Errorf("Order.ShippingLines length, expected %v, actual %v", 2, len(order.ShippingLines))
+	}
+	if order.ShippingLines[0].Title != "Generic Shipping" {
+		t.Errorf("Order.ShippingLines[0].Title, expected %v, actual %v", "Generic Shipping", order.ShippingLines[0].Title)
+	}
+	if !decimal.New(1000, -2).Equals(*order.ShippingLines[0].Price) {
+		t.Errorf("Order.ShippingLines[0].Price, expected %v, actual %v", "10.00", order.ShippingLines[0].Price)
+	}
+	if order.ShippingLines[0].IsArchived {
+		t.Errorf("Order.ShippingLines[0].IsArchived, expected %v, actual %v", "false", order.ShippingLines[0].IsArchived)
+	}
+	if order.ShippingLines[1].Title != "Archived Shipping" {
+		t.Errorf("Order.ShippingLines[0].Title, expected %v, actual %v", "Generic Shipping", order.ShippingLines[1].Title)
+	}
+	if !decimal.New(2000, -2).Equals(*order.ShippingLines[1].Price) {
+		t.Errorf("Order.ShippingLines[1].Price, expected %v, actual %v", "20.00", order.ShippingLines[1].Price)
+	}
+	if !order.ShippingLines[1].IsArchived {
+		t.Errorf("Order.ShippingLines[1].IsArchived, expected %v, actual %v", "true", order.ShippingLines[1].IsArchived)
+	}
 }
 
 func transactionTest(t *testing.T, transaction Transaction) {
